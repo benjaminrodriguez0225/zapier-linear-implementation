@@ -2,16 +2,13 @@ import { ZObject, Bundle } from "zapier-platform-core";
 
 interface LabelsResponse {
   data: {
-    issueLabels: {
-      nodes: {
-        id: string;
-        name: string;
-        type: string;
-        archivedAt: Date | null;
-        team: {
+    team: {
+      labels: {
+        nodes: {
           id: string;
-        };
-      }[];
+          name: string;
+        }[];
+      };
     };
   };
 }
@@ -31,13 +28,11 @@ const getLabelList = async (z: ZObject, bundle: Bundle) => {
     body: {
       query: `
       query {
-        issueLabels(first: 100) {
-          nodes {
-            id
-            name
-            archivedAt
-            team {
+        team(id: "${bundle.inputData.team_id}"){
+          labels(first:100) {
+            nodes {
               id
+              name
             }
           }
         }
@@ -48,12 +43,7 @@ const getLabelList = async (z: ZObject, bundle: Bundle) => {
 
   const data = (response.json as LabelsResponse).data;
 
-  return data.issueLabels.nodes
-    .filter(status => status.archivedAt === null && status.team.id === bundle.inputData.team_id)
-    .map(status => ({
-      id: status.id,
-      name: status.name,
-    }));
+  return data.team.labels.nodes;
 };
 
 export const label = {
