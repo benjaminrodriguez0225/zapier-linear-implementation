@@ -1,6 +1,7 @@
 import { omitBy, pick } from "lodash";
 import { ZObject, Bundle } from "zapier-platform-core";
 import sample from "../samples/documentComment.json";
+import { getWebhookData, unsubscribeHook } from "../handleWebhook";
 
 interface Comment {
   id: string;
@@ -72,37 +73,6 @@ const subscribeHook = (z: ZObject, bundle: Bundle) => {
       body: data,
     })
     .then((response) => response.data);
-};
-
-/**
- * Deletes a webhook subscription for document comments in Linear.
- * @see https://platform.zapier.com/build/cli-hook-trigger#2-write-the-unsubscribehook-function
- * @see https://platform.zapier.com/build/cli-hook-trigger#unsubscribehook
- */
-const unsubscribeHook = (z: ZObject, bundle: Bundle) => {
-  // bundle.subscribeData contains the parsed response JSON from the subscribe request.
-  const hookId = bundle.subscribeData?.id;
-
-  return z
-    .request({
-      url: `https://client-api.linear.app/connect/zapier/unsubscribe/${hookId}`,
-      method: "DELETE",
-    })
-    .then((response) => response.data);
-};
-
-/**
- * This processes inbound webhooks from Linear.
- * @see https://platform.zapier.com/build/cli-hook-trigger#3-write-the-perform-function
- * @see https://platform.zapier.com/build/cli-hook-trigger#perform
- */
-const getComment = (z: ZObject, bundle: Bundle) => {
-  const comment = {
-    ...bundle.cleanedRequest.data,
-    querystring: undefined,
-  };
-
-  return [comment];
 };
 
 /**
@@ -247,7 +217,7 @@ export const newDocumentCommentInstant = {
     type: "hook",
     performSubscribe: subscribeHook,
     performUnsubscribe: unsubscribeHook,
-    perform: getComment,
+    perform: getWebhookData,
     performList: getCommentList(),
     sample,
   },
